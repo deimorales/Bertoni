@@ -1,31 +1,75 @@
-﻿@{
-    ViewBag.Title = "Home Page";
+﻿<div class="row">
+    
+    <table class="table table-striped" id="Albums">
+        <caption>Lista de Albums</caption>
+        <thead>
+            <tr>
+                <th scope="col"></th>
+                <th scope="col">Album</th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+@section scripts
+{
+    <script>
+    $(document).ready(function () {
+        $.ajax({
+            method: 'GET',
+            url: '@Url.Content("~/api/Albums")'
+        }).done(function (data) {
+            $.each(data, function (index, item) {
+                var tr = $("<tr>");
+                tr.append($("<th>").attr("scope", "row").text(item.id));
+                tr.append($("<td>").addClass("album").attr("album-id", item.id).text(item.title));
+                tr.append($("<td>").append($("<button>").addClass("btn btn-primary").text("Visualizar Álbum").click(function () {
+                    $.ajax({
+                        method: 'GET',
+                        data: { id: item.id },
+                        url: '@Url.Content("~/api/Albums")'
+                    }).done(function (photos) {
+                        $('.album div').replaceWith("");
+                        var div = $("<div>").css('margin-top', '20px').css('background-color', '#fff');
+                        $.each(photos, function (index, photo) {
+                            div.append($("<div>")
+                                .attr("id", "div-image" + photo.id)
+                                .css("border", "solid 1px #0c0c0c")
+                                .append("<h1>" + photo.title + "</h1>")
+                                .append("<p>")
+                                .append($('<img>').attr('src', photo.thumbnailUrl))
+                                .append("<br>")
+                                .append($('<a>')
+                                    .attr("href", "#")
+                                    .text("Mostrar comentarios")
+                                    .click(function (e) {
+                                        e.preventDefault();
+                                        $.ajax({
+                                            method: 'GET',
+                                            data: { id: photo.id },
+                                            url: '@Url.Content("~/api/Comments")'
+                                        }).done(function (comments) {
+                                            $.each(comments, function (index, comment) {
+                                                var divComment = $("<div>")
+                                                    .css("border", "solid 1px #000")
+                                                    .append($("<p>").text(comment.name))
+                                                    .append($("<p>").text(comment.email))
+                                                    .append($("<p>").text(comment.body));
+                                                $("#div-image" + comment.postId).append(divComment);
+                                            });
+                                        });
+                                    })));
+                        });
+                        $('[album-id="' + item.id + '"]').append($(div));
+                    });
+
+                })));
+                $("#Albums > tbody").append(tr);
+            });
+        });
+    });
+    </script>
 }
-
-<div class="jumbotron">
-    <h1>ASP.NET</h1>
-    <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
-    <p><a href="https://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
-</div>
-
-<div class="row">
-    <div class="col-md-4">
-        <h2>Getting started</h2>
-        <p>
-            ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-            enables a clean separation of concerns and gives you full control over markup
-            for enjoyable, agile development.
-        </p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Get more libraries</h2>
-        <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Web Hosting</h2>
-        <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
-    </div>
-</div>
